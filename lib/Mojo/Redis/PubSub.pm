@@ -38,6 +38,10 @@ sub listen {
 }
 
 sub notify {
+  shift->notify_p(@_)->wait;
+}
+
+sub notify_p {
   my ($self, $name, $payload) = @_;
   $payload = to_json $payload if $self->{json}{$name};
   shift->db->call_p(PUBLISH => $name, $payload);
@@ -292,7 +296,15 @@ can have. The returning code ref can be passed on to L</unlisten>.
 
   $pubsub->notify($channel => $message);
 
-Send a plain string message to a channel.
+Send a plain string message to a channel. Will be blocking if L<Mojo::IOLoop>
+is not running.
+
+=head2 notify_p
+
+  $promise = $pubsub->notify($channel => $message);
+
+Send a plain string message to a channel and returns a L<Mojo::Promise> that
+will be fulfilled when the message has been sent to the Redis server.
 
 =head2 numpat_p
 
